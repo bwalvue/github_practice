@@ -1,0 +1,17 @@
+#python이 자동 생성하는 파일
+__pycache__/
+*.pyc
+
+#가상환경 폴더
+.venv*/
+venv/
+
+#개인 설정과 비밀정보
+.env
+.env.*
+비밀번호.txt
+
+#임시 파일과 출력 폴더
+*.tmp
+outputs/
+
