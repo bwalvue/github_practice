@@ -7,6 +7,3 @@ PPT 40쪽 / 관련 설명 33~41쪽 / 교시 내 실습 25분.
 
 먼저 선택한 난이도의 README.md를 읽고, TODO만 구현한 뒤 검사합니다.
 
-why is it so interesting?
-
-almost there
