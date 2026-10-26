@@ -53,6 +53,9 @@ for name, estimator in [
     ("KNN15", KNeighborsRegressor(n_neighbors=15)),
 ]:
     model = Pipeline([("pre", clone(pre)), ("model", estimator)])
+
+    # TODO A07r: 회귀 모델을 학습하고 valid 예측을 구하세요.
+    # 풀이: 회귀는 실행시간을 예측하므로 y에 elapsed_ms를 주고, valid 정답은 예측 후 오차 계산에 사용합니다.
     model.fit(X_train, train["elapsed_ms"])
     prediction = model.predict(X_valid)
 
@@ -77,6 +80,9 @@ for name, estimator in [
     ("KNN3", KNeighborsClassifier(n_neighbors=3)),
 ]:
     model = Pipeline([("pre", clone(pre)), ("model", estimator)])
+
+    # TODO A07c: 분류 모델을 학습하고 valid 예측을 구하세요.
+    # 풀이: 같은 입력으로도 분류의 y는 성공/실패 라벨이어야 하므로, 회귀의 elapsed_ms 대신 failed를 사용합니다.
     model.fit(X_train, train["failed"])
     prediction = model.predict(X_valid)
 
@@ -120,5 +126,3 @@ print("저장: outputs의 비교표 2개와 validation_predictions.csv")
 print("test는 학습·변환·예측·평가하지 않았습니다.")
 
 # 주 지표로 회귀는 RMSE 최소인 Linear, 분류는 F1 최대인 KNN3를 선택합니다.
-# 회귀의 Linear와 KNN15는 RMSE 차이가 약 1.8ms라서 일반적인 우열까지 단정하기 어렵습니다.
-# test는 모델에 전달하지 않았고, 합성 자료의 valid 비교만으로 실제 서비스 성능을 보장하지 않습니다.
