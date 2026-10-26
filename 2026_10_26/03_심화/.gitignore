@@ -1,0 +1,5 @@
+# 실행 결과 중 표와 선택 기록만 Git에 포함합니다.
+!**/outputs/
+**/outputs/*
+!**/outputs/*.csv
+!**/outputs/*.json
