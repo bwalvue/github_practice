@@ -1,11 +1,14 @@
-"""지표 계산을 한곳에 모읍니다. 정상적인 0/1 두 클래스 입력을 전제로 합니다."""
+"""정상적인 0/1 두 클래스 입력의 지표 계산 모듈"""
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 def summarize(y, prediction, probability):
-    """판정은 F1에, 연속 점수는 AUC에 사용합니다. 사람의 보고서 판단은 자동 채점하지 않습니다."""
+    """0/1 판정 기반 F1·연속 확률 기반 AUC 계산, 보고서 해석은 별도 판단"""
     tn, fp, fn, tp = confusion_matrix(y, prediction, labels=[0, 1]).ravel()
     # TODO H07m: F1은 prediction으로, ROC-AUC는 probability로 계산하세요.
-    f1 = auc = 0.0
+    # F1에는 0/1 예측, AUC에는 실패 확률 사용
+    # 임시 상수 대신 실제 예측 기반 지표 계산
+    f1 = f1_score(y, prediction, zero_division=0)
+    auc = roc_auc_score(y, probability)
     # TODO 끝
     return {"n": len(y), "Accuracy": accuracy_score(y, prediction),
             "Precision": precision_score(y, prediction, zero_division=0),

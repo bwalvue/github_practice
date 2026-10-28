@@ -1,4 +1,4 @@
-"""제공 모듈: 전처리 구성과 후보 설정만 담습니다. import만으로 학습하지 않습니다."""
+"""제공 모듈: 전처리 구성·후보 설정, import 시 학습 없음"""
 from sklearn.base import clone
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -17,7 +17,7 @@ NUM, CAT = FEATURES[:2], FEATURES[2:]
 DERIVED = ["log_input_chars", "chars_per_slot"]
 
 def build(estimator, derived=False, scale=True):
-    """매번 학습 전 상태의 Pipeline을 만듭니다. 결측·범주 처리는 전날과 같습니다."""
+    """학습 전 상태의 새 Pipeline 생성, 기존 결측·범주 처리 유지"""
     numbers = NUM + DERIVED if derived else NUM
     numeric = [("imputer", SimpleImputer(strategy="median", keep_empty_features=True))]
     if scale:
@@ -28,7 +28,7 @@ def build(estimator, derived=False, scale=True):
     steps = [("features", FunctionTransformer(add_features, validate=False))] if derived else []
     return Pipeline(steps + [("pre", pre), ("model", clone(estimator))])
 
-# 후보·파라미터는 test 확인 전에 고정합니다. 순서가 동점 처리 순서입니다.
+# test 확인 전 후보·파라미터 고정, 후보 순서를 동점 처리에 사용
 CANDIDATES = {
     "Dummy": build(DummyClassifier(strategy="most_frequent")),
     "Logistic": build(LogisticRegression(C=1, max_iter=1000)),

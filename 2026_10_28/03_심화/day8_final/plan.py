@@ -1,4 +1,4 @@
-"""실습 06 심화: train CV로 선택하고 설정을 저장합니다. test 입력·정답은 선택하지 않습니다."""
+"""실습 06 심화: train CV 기반 후보 선택·설정 저장, test 선택 제외"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -21,7 +21,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import f1_score
 from preprocessing import CANDIDATES
 
-# 제공: 최종 평가 파일이 이미 있으면 기존 계획을 보존합니다. 보안 잠금이 아닌 실습용 진행 안내입니다.
+# 제공: 최종 평가 파일 존재 시 기존 계획 보존, 실습 순서의 실수 방지 목적
 if (OUT / "test_metrics.json").exists():
     print("최종 평가 이후에는 선택을 다시 하지 않습니다. 기존 selection.json으로 main.py를 재실행하세요.")
 else:
@@ -30,7 +30,12 @@ else:
     for name, prototype in CANDIDATES.items():
         model = clone(prototype)
         # TODO H06: 각 후보 Pipeline을 동일 train 5-fold로 비교하세요. 미리 전체 train을 변환하지 않습니다.
-        scores = np.zeros(5)
+        # Pipeline 전체 전달로 각 fold의 학습 48건에서 전처리·모델 학습
+        # 후보마다 같은 5-fold 적용, valid 점수는 진단용으로 기록
+        scores = cross_val_score(
+            model, X_train, y_train,
+            cv=folds, scoring="f1", n_jobs=1,
+        )
         # TODO 끝
         model.fit(X_train, y_train)
         rows.append({"model": name, "CV_F1": scores.mean(), "CV_std": scores.std(),
