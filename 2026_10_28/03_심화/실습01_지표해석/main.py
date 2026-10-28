@@ -1,4 +1,4 @@
-"""실습 01 심화: 지표와 업무 비용을 함께 읽습니다. 기존 응용 수준의 짧은 비교입니다."""
+"""실습 01 심화: 분류 지표·가정한 업무 비용의 비교"""
 from pathlib import Path
 import pandas as pd
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
@@ -10,7 +10,9 @@ rows = []
 for name, pred in predictions.items():
     tn, fp, fn, tp = confusion_matrix(y, pred, labels=[0, 1]).ravel()
     # TODO H01: FP 비용1, FN 비용5라는 가정으로 총비용을 계산하세요.
-    cost = 0
+    # 오탐 FP 비용 1과 미탐 FN 비용 5의 가정으로 총비용 계산
+    # 정확도만으로 드러나지 않는 실패 누락 비용의 비교 목적
+    cost = fp + 5 * fn
     # TODO 끝
     rows.append({"model": name, "Accuracy": accuracy_score(y, pred),
                  "Precision": precision_score(y, pred, zero_division=0),

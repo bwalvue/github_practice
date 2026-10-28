@@ -1,4 +1,4 @@
-"""실습 02 심화: ROC 좌표와 두 임계값 표를 별도로 기록합니다."""
+"""실습 02 심화: ROC 좌표·두 임계값 비교표의 별도 기록"""
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -12,7 +12,9 @@ pd.DataFrame({"FPR": fpr, "TPR": tpr, "threshold": thresholds}).to_csv(OUT / "ro
 rows = []
 for threshold in [0.5, 0.3]:
     # TODO H02: 현재 임계값보다 점수가 클 때만 양성1로 바꾸세요.
-    pred = np.zeros(len(y), dtype=int)
+    # 현재 임계값을 초과하는 점수만 양성 1로 변환
+    # 동일 확률에서 판정 규칙에 따른 FP·FN·비용 변화 비교 목적
+    pred = (score > threshold).astype(int)
     # TODO 끝
     tn, fp, fn, tp = confusion_matrix(y, pred, labels=[0, 1]).ravel()
     rows.append({"threshold": threshold, "FP": fp, "FN": fn, "F1": f1_score(y, pred),

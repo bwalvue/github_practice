@@ -1,7 +1,6 @@
-"""실습 03 심화: 회귀 Pipeline 두 개를 같은 KFold로 비교합니다."""
+"""실습 03 심화: 동일 KFold에서 회귀 Pipeline 두 후보 비교"""
 from pathlib import Path
 import pandas as pd
-import numpy as np
 HERE = Path(__file__).resolve().parent
 raw = pd.read_csv(HERE / "data/requests.csv").set_index("request_id")
 manifest = pd.read_csv(HERE / "data/split_manifest.csv")
@@ -34,7 +33,12 @@ rows = []
 for name, estimator in [("Linear", LinearRegression()), ("KNN15", KNeighborsRegressor(n_neighbors=15))]:
     model = Pipeline([("pre", clone(pre)), ("model", estimator)])
     # TODO H03: 같은 folds로 음수 RMSE 점수를 구한 뒤 부호를 되돌리세요.
-    rmse = np.zeros(5)
+    # 음수 RMSE scorer의 부호를 되돌려 ms 단위 오차로 기록
+    # 같은 fold의 학습 자료에서만 전처리 학습, 후보 간 비교 조건 고정
+    rmse = -cross_val_score(
+        model, X_train, y_train,
+        cv=folds, scoring="neg_root_mean_squared_error", n_jobs=1,
+    )
     # TODO 끝
     for number, value in enumerate(rmse, start=1):
         rows.append({"model": name, "fold": number, "RMSE_ms": value})

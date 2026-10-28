@@ -1,4 +1,4 @@
-"""실습 05 심화: 같은 표준화 공간에서 K=2·3·4를 비교하고 새 요청에 같은 규칙을 씁니다."""
+"""실습 05 심화: 동일 표준화 공간의 K=2·3·4 비교·새 요청 적용"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -25,7 +25,9 @@ for k in [2, 3, 4]:
     model = Pipeline([("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler()),
                       ("cluster", KMeans(n_clusters=k, n_init=10, random_state=42))])
     # TODO H05: 현재 K의 model을 train 수치2열로 학습하세요. 비교할 때 전처리와 입력은 고정합니다.
-    pass
+    # train 수치 2열과 전처리 조건 고정으로 K에 따른 차이만 비교
+    # 정답·valid·test의 군집 학습 제외
+    model.fit(X_train[NUM])
     # TODO 끝
     z = model[:-1].transform(X_train[NUM])
     labels = model["cluster"].labels_

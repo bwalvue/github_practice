@@ -1,4 +1,4 @@
-"""실습 04 심화: 행별 파생 규칙까지 Pipeline에 포함해 두 표현을 비교합니다."""
+"""실습 04 심화: 행별 파생 규칙을 포함한 Pipeline의 두 표현 비교"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -32,11 +32,13 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import f1_score
 
 def add_features(X):
-    """원본을 바꾸지 않고 파생 열 두 개를 추가한 새 표를 반환합니다."""
+    """원본을 보존하고 파생 열 두 개를 추가한 새 표 반환"""
     out = X.copy()
     # TODO H04: log1p와 비율 두 열을 추가하세요. 분모는 실제 도구 사용량이 아니라 1+allowed_tools입니다.
-    out["log_input_chars"] = 0.0
-    out["chars_per_slot"] = 0.0
+    # 원본·인덱스 보존을 위한 복사본에 파생 열 추가
+    # 실행 전 입력만 사용하고 결측 통계는 뒤의 전처리에서 학습
+    out["log_input_chars"] = np.log1p(out["input_chars"])
+    out["chars_per_slot"] = out["input_chars"] / (1.0 + out["allowed_tools"])
     # TODO 끝
     return out
 
