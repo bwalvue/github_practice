@@ -1,4 +1,4 @@
-"""실습 04 응용: 행별 특성 두 개만 추가하고 같은 Logistic·5-fold로 비교합니다."""
+"""실습 04 응용: 같은 Logistic·5-fold에서 파생 특성 두 열의 효과 비교"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -18,7 +18,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-# 제공: 모든 평균·중앙값·범주 목록은 Pipeline.fit의 학습 부분에서만 결정됩니다.
+# 제공: 평균·중앙값·범주 목록은 Pipeline의 학습 자료에서만 결정
 pre = ColumnTransformer([
     ("num", Pipeline([("imputer", SimpleImputer(strategy="median", keep_empty_features=True)),
                       ("scaler", StandardScaler())]), NUM),
@@ -31,24 +31,18 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.metrics import f1_score
 from sklearn.base import clone
 # TODO A04: train·valid에 log_input_chars와 chars_per_slot을 추가하세요. 자기 행만 사용하고 NaN은 다음 Pipeline에서 처리합니다.
-# 정답 예시 A04 (아래 pass를 다음 세 줄로 교체):
-# for part in (X_train, X_valid):
-#     part["log_input_chars"] = np.log1p(part["input_chars"])
-#     part["chars_per_slot"] = part["input_chars"] / (1.0 + part["allowed_tools"])
-# 해설: part는 차례로 X_train·X_valid를 가리키며, 각각의 복사된 입력 표에 두 열을 추가합니다.
-# log_input_chars는 log(1+글자 수), chars_per_slot은 글자 수/(1+허용 도구 수)입니다.
-# 허용 도구 수 0에서도 분모가 1이 되며, 결측값 NaN은 유지해 뒤의 Pipeline에서 대체합니다.
-# 두 공식은 자기 행의 입력만 사용하므로 CV 전에 계산해도 다른 행의 통계를 학습하지 않습니다.
-# 중앙값·표준화·범주 목록은 각 fold 학습 부분에서 배웁니다. 전체 자료로 먼저 fit하지 않습니다.
-# 원본 CSV·정답 열은 바꾸지 않으며, 파생 열의 효과는 아래에서 같은 fold와 모델로 비교합니다.
-pass
+# 두 공식 모두 자기 행의 입력만 사용, 결측값은 NaN으로 유지
+# 통계 누수 방지를 위해 중앙값·표준화는 fold별 Pipeline에서 학습
+for part in (X_train, X_valid):
+    part["log_input_chars"] = np.log1p(part["input_chars"])
+    part["chars_per_slot"] = part["input_chars"] / (1.0 + part["allowed_tools"])
 # TODO 끝
 folds = list(StratifiedKFold(n_splits=5, shuffle=True, random_state=42).split(X_train, y_train))
 choices = {"Logistic": NUM, "Logistic_FE": NUM + ["log_input_chars", "chars_per_slot"]}
 rows = []
 for name, numeric_columns in choices.items():
     current_pre = clone(pre)
-    # 제공: 파생 열이 있을 때 수치 경로에만 추가합니다. 범주 경로는 바꾸지 않습니다.
+    # 제공: 파생 열은 수치 경로에만 추가, 범주 경로 유지
     current_pre.transformers[0] = ("num", current_pre.transformers[0][1], numeric_columns)
     model = Pipeline([("pre", current_pre), ("model", LogisticRegression(C=1, max_iter=1000))])
     scores = cross_val_score(model, X_train, y_train, cv=folds, scoring="f1", n_jobs=1)

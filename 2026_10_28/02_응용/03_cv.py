@@ -1,4 +1,4 @@
-"""실습 03 응용: Pipeline을 통째로 train 내부 5-fold에 넣어 다중 지표를 계산합니다."""
+"""실습 03 응용: train 내부 5-fold에서 Pipeline의 다중 지표 계산"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -18,7 +18,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-# 제공: 모든 평균·중앙값·범주 목록은 Pipeline.fit의 학습 부분에서만 결정됩니다.
+# 제공: 평균·중앙값·범주 목록은 Pipeline의 학습 자료에서만 결정
 pre = ColumnTransformer([
     ("num", Pipeline([("imputer", SimpleImputer(strategy="median", keep_empty_features=True)),
                       ("scaler", StandardScaler())]), NUM),
@@ -32,19 +32,13 @@ from sklearn.metrics import make_scorer, f1_score
 model = Pipeline([("pre", pre), ("model", LogisticRegression(C=1, max_iter=1000))])
 folds = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 # TODO A03: train만 넣어 F1과 AUC를 함께 구하세요. 전처리한 배열 대신 model 전체를 전달합니다.
-# 정답 예시 A03 (아래 임시 대입문을 다음 호출로 교체):
-# scores = cross_validate(
-#     model, X_train, y_train, cv=folds,
-#     scoring={"f1": make_scorer(f1_score, zero_division=0), "auc": "roc_auc"},
-#     n_jobs=1,
-# )
-# 해설: cross_validate는 같은 5개 fold에서 여러 평가 지표를 함께 계산합니다.
-# Pipeline 전체를 전달하므로 중앙값·표준화·범주 목록도 각 fold의 학습48건에서만 배웁니다.
-# f1 scorer는 0/1 예측값을, roc_auc scorer는 실패1의 연속 점수를 사용하도록 구성됩니다.
-# scoring의 키 f1·auc에 test_가 붙어 test_f1·test_auc 배열이 반환되며 길이는 각각 5입니다.
-# 여기서 test는 fold 내부 평가12건을 뜻합니다. 보관한 test20이나 바깥 valid20을 넣지 않습니다.
-# 점수의 표준편차는 fold 간 변동을 보여 주며 신뢰구간이나 최종 성능 보장은 아닙니다.
-scores = {"test_f1": np.zeros(5), "test_auc": np.zeros(5)}
+# Pipeline 전체 전달로 각 fold의 학습 48건에서만 전처리 학습
+# test_f1·test_auc는 CV 내부 평가 12건의 점수이며 보관 test20과 무관
+scores = cross_validate(
+    model, X_train, y_train, cv=folds,
+    scoring={"f1": make_scorer(f1_score, zero_division=0), "auc": "roc_auc"},
+    n_jobs=1,
+)
 # TODO 끝
 result = pd.DataFrame({"fold": range(1, 6), "F1": scores["test_f1"], "ROC_AUC": scores["test_auc"]})
 result.to_csv(OUT / "classification_cv.csv", index=False, encoding="utf-8-sig")

@@ -1,4 +1,4 @@
-"""실습 05 응용: train 수치2열만 결측 대체·표준화하여 K=3으로 묶습니다."""
+"""실습 05 응용: train 수치 2열의 결측 대체·표준화 후 K=3 군집화"""
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -24,14 +24,9 @@ cluster = Pipeline([("imputer", SimpleImputer(strategy="median")),
                     ("scaler", StandardScaler()),
                     ("kmeans", KMeans(n_clusters=3, n_init=10, random_state=42))])
 # TODO A05: 수치2열만으로 cluster를 학습하세요. failed나 elapsed_ms를 넣지 않습니다.
-# 정답 예시 A05 (아래 pass를 다음 한 줄로 교체):
-# cluster.fit(X_train[NUM])
-# 해설: NUM은 input_chars·allowed_tools 두 열입니다. train60건만 입력하고 정답 y는 전달하지 않습니다.
-# Pipeline은 train에서 결측 대체 중앙값과 표준화 기준을 배운 뒤 K=3 군집을 학습합니다.
-# 단위가 다른 두 열은 표준화한 공간에서 거리로 비교합니다. 군집 번호는 성공·실패 라벨이 아닙니다.
-# 아래 inverse_transform은 중심을 원래 단위인 글자 수·도구 수로 되돌려 해석하도록 합니다.
-# 반면 silhouette는 z, 즉 표준화 공간의 행들과 군집 번호로 계산합니다.
-pass
+# train 60건의 글자 수·허용 도구 수만 사용, 정답 제외
+# 단위 차이의 거리 왜곡 방지를 위한 결측 대체·표준화 후 군집화
+cluster.fit(X_train[NUM])
 # TODO 끝
 labels = cluster["kmeans"].labels_
 z = cluster[:-1].transform(X_train[NUM])
