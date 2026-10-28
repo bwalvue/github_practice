@@ -3,6 +3,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, r
 
 def summarize(y, prediction, probability):
     """0/1 판정 기반 F1·연속 확률 기반 AUC 계산, 보고서 해석은 별도 판단"""
+    # 클래스 [0, 1] 고정으로 TN·FP·FN·TP의 위치와 반환 순서 일치
     tn, fp, fn, tp = confusion_matrix(y, prediction, labels=[0, 1]).ravel()
     # TODO H07m: F1은 prediction으로, ROC-AUC는 probability로 계산하세요.
     # F1에는 0/1 예측, AUC에는 실패 확률 사용

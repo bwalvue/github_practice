@@ -9,9 +9,11 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "outputs"
 plan = json.loads((OUT / "selection.json").read_text(encoding="utf-8"))
 raw = pd.read_csv(HERE / "data/requests.csv").set_index("request_id")
+# main.py의 저장 예측을 확률·판정 재현의 비교 기준으로 사용
 expected = pd.read_csv(OUT / "test_predictions.csv")
 # main.py에서 직접 생성한 모델만 복원, 신뢰할 수 없는 외부 파일 제외
 model = joblib.load(OUT / "pipeline.joblib")
+# CSV의 요청 ID 순서대로 입력을 재배열하여 행 대응 오류 방지
 X = raw.loc[expected["request_id"], plan["features"]]
 positive_column = model.classes_.tolist().index(1)
 # TODO H08: 복원 모델로 같은 ID 순서의 실패 확률을 구하세요. fit은 호출하지 않습니다.
@@ -20,6 +22,7 @@ positive_column = model.classes_.tolist().index(1)
 probability = model.predict_proba(X)[:, positive_column]
 # TODO 끝
 prediction = (probability > plan["threshold"]).astype(int)
+# ID·판정은 정확 일치, 확률은 허용오차 내 일치로 재현 확인
 print("ID 순서 동일:", X.index.tolist() == expected["request_id"].tolist())
 print("확률 동일:", np.allclose(probability, expected["probability_failed"], rtol=1e-10, atol=1e-12))
 print("예측 동일:", np.array_equal(prediction, expected["predicted"]))

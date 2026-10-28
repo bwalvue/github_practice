@@ -5,6 +5,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 raw = pd.read_csv(HERE / "data/requests.csv").set_index("request_id")
 manifest = pd.read_csv(HERE / "data/split_manifest.csv")
+# 분할 명세의 position 순서로 train·valid 선택, 후보 비교에서 test 제외
 train_ids = manifest.loc[manifest["split"] == "train"].sort_values("position")["request_id"].tolist()
 valid_ids = manifest.loc[manifest["split"] == "valid"].sort_values("position")["request_id"].tolist()
 train, valid = raw.loc[train_ids].copy(), raw.loc[valid_ids].copy()
@@ -25,9 +26,11 @@ from preprocessing import CANDIDATES
 if (OUT / "test_metrics.json").exists():
     print("최종 평가 이후에는 선택을 다시 하지 않습니다. 기존 selection.json으로 main.py를 재실행하세요.")
 else:
+    # 최종 평가 전 경로에서만 후보 비교, 동일 행 분할 유지를 위한 fold 인덱스 고정
     folds = list(StratifiedKFold(n_splits=5, shuffle=True, random_state=42).split(X_train, y_train))
     rows, fold_rows = [], []
     for name, prototype in CANDIDATES.items():
+        # 후보 간 학습 상태 공유 방지를 위한 Pipeline 복제
         model = clone(prototype)
         # TODO H06: 각 후보 Pipeline을 동일 train 5-fold로 비교하세요. 미리 전체 train을 변환하지 않습니다.
         # Pipeline 전체 전달로 각 fold의 학습 48건에서 전처리·모델 학습
@@ -37,14 +40,19 @@ else:
             cv=folds, scoring="f1", n_jobs=1,
         )
         # TODO 끝
+        # CV 모델과 별도로 train60 전체 재학습 후 valid20 진단
         model.fit(X_train, y_train)
         rows.append({"model": name, "CV_F1": scores.mean(), "CV_std": scores.std(),
                      "valid_F1": f1_score(y_valid, model.predict(X_valid), zero_division=0)})
+        # 평균에 가려지는 fold 간 변동 확인을 위한 개별 점수 기록
         for number, value in enumerate(scores, start=1):
             fold_rows.append({"model": name, "fold": number, "F1": value})
     result = pd.DataFrame(rows)
+    # valid 진단과 분리된 CV 평균 최대 선택, 정확한 동점은 후보 순서 우선
     selected = result.loc[result["CV_F1"].idxmax(), "model"]
+    # 현재 단계에서는 test ID만 기록, 입력·정답은 main.py의 최종 평가에서 사용
     test_ids = manifest.loc[manifest["split"] == "test"].sort_values("position")["request_id"].tolist()
+    # 선택 모델·파라미터·특성·임계값·분할 ID의 동시 기록으로 평가 조건 고정
     plan = {"selected": selected, "candidate_order": list(CANDIDATES),
             "features": FEATURES, "derived": selected == "Logistic_FE", "threshold": 0.5,
             "rule": "score > threshold", "positive_label": 1,

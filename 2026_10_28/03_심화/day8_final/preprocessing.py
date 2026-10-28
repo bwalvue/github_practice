@@ -18,14 +18,19 @@ DERIVED = ["log_input_chars", "chars_per_slot"]
 
 def build(estimator, derived=False, scale=True):
     """학습 전 상태의 새 Pipeline 생성, 기존 결측·범주 처리 유지"""
+    # 파생 후보에만 수치 열 확장, 범주 열은 공통 구성 유지
     numbers = NUM + DERIVED if derived else NUM
     numeric = [("imputer", SimpleImputer(strategy="median", keep_empty_features=True))]
+    # 특성 단위의 거리·계수 영향 완화를 위한 선택적 표준화
     if scale:
         numeric.append(("scaler", StandardScaler()))
+    # 범주 결측 대체 후 원핫 변환, 새 범주의 추론 오류 방지를 위한 ignore 설정
     category = Pipeline([("imputer", SimpleImputer(strategy="most_frequent", keep_empty_features=True)),
                          ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False))])
     pre = ColumnTransformer([("num", Pipeline(numeric), numbers), ("cat", category, CAT)])
+    # 파생 규칙을 Pipeline에 포함하여 CV·최종 학습·복원에 같은 순서 적용
     steps = [("features", FunctionTransformer(add_features, validate=False))] if derived else []
+    # 후보별 모델 객체의 학습 상태 분리를 위한 estimator 복제
     return Pipeline(steps + [("pre", pre), ("model", clone(estimator))])
 
 # test 확인 전 후보·파라미터 고정, 후보 순서를 동점 처리에 사용
