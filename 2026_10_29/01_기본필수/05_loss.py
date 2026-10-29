@@ -9,7 +9,8 @@ loss_fn = nn.CrossEntropyLoss()
 # logits에 softmax를 먼저 적용하지 마세요.
 # >>> B05
 # TODO B05: 위 요구사항을 읽고 이 블록을 완성하세요.
-loss = torch.tensor(0.0)
+# 내부 log-softmax 계산을 위한 원시 logits와 정답 클래스 전달
+loss = loss_fn(logits, target)
 # <<< B05
 print("logits:", tuple(logits.shape))
 print("target:", tuple(target.shape), target.dtype)

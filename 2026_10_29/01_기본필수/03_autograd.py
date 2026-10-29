@@ -5,7 +5,8 @@ x = torch.tensor(3.0, requires_grad=True)
 # x를 Python 숫자로 바꾸지 마세요. 계산 그래프가 이어져 있어야 합니다.
 # >>> B03
 # TODO B03: 위 요구사항을 읽고 이 블록을 완성하세요.
-y = x + 0
+# Tensor 연산을 통한 다항식 계산 및 미분 그래프 유지
+y = x ** 2 + 2 * x + 1
 # <<< B03
 # backward는 y 값을 바꾸지 않고 x.grad에 기울기를 계산합니다.
 y.backward()

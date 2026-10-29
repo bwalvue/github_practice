@@ -7,7 +7,8 @@ torch.manual_seed(42)
 # 첫 Linear(2, 8)와 ReLU는 그대로 두세요. 모델 정의는 미리 제공했습니다.
 # >>> B04
 # TODO B04: 위 요구사항을 읽고 이 블록을 완성하세요.
-model = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 1))
+# 입력 특성 2개와 클래스별 원시 점수 2개 연결
+model = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 2))
 # <<< B04
 X = torch.tensor([[1.0, 2.0], [3.0, 4.0], [0.0, 1.0], [2.0, 0.0]])
 logits = model(X)

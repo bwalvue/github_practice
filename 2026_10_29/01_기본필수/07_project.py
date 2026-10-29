@@ -9,6 +9,7 @@ from torch import nn
 base = Path(__file__).resolve().parent
 with (base / "points.csv").open(encoding="utf-8", newline="") as f:
     rows = list(csv.DictReader(f))
+# 고정 train/valid 분할 사용 및 test의 모델 입력 제외
 train_rows = [r for r in rows if r["split"] == "train"]
 valid_rows = [r for r in rows if r["split"] == "valid"]
 X_train = torch.tensor([[float(r["x1"]), float(r["x2"])] for r in train_rows])
@@ -20,20 +21,25 @@ torch.manual_seed(42)
 model = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 2))
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+# 학습 전 epoch0과 갱신 후 손실을 같은 train 자료로 비교
 history = [[0, loss_fn(model(X_train), y_train).item()]]
 model.train()
 for epoch in range(1, 81):
+    # 이전 epoch의 gradient 누적 방지를 위한 초기화
     optimizer.zero_grad()
     loss = loss_fn(model(X_train), y_train)
     # 06번에서 배운 역전파와 파라미터 갱신 두 문장을 연결하세요.
     # 이미 위에서 이전 gradient를 비우고 loss를 계산했습니다.
     # >>> B08
     # TODO B08: 위 요구사항을 읽고 이 블록을 완성하세요.
-    pass
+    # 손실 미분 후 SGD를 통한 파라미터 갱신
+    loss.backward()
+    optimizer.step()
     # <<< B08
     # 갱신 후 같은 train 자료의 loss를 기록합니다. 마지막 batch loss와 구분합니다.
     with torch.no_grad():
         history.append([epoch, loss_fn(model(X_train), y_train).item()])
+# 검증 시 평가 모드 적용 및 gradient 그래프 생성 방지
 model.eval()
 with torch.no_grad():
     logits = model(X_valid)
@@ -41,9 +47,11 @@ with torch.no_grad():
     # argmax의 dim=1은 클래스 방향입니다. 결과 shape는 (4,)입니다.
     # >>> B09
     # TODO B09: 위 요구사항을 읽고 이 블록을 완성하세요.
-    prediction = torch.zeros(len(y_valid), dtype=torch.long)
+    # 각 표본의 클래스 축에서 가장 큰 원시 점수의 인덱스 선택
+    prediction = logits.argmax(dim=1)
     # <<< B09
     accuracy = (prediction == y_valid).float().mean().item()
+# 재실행 시 현재 실행 결과로 학습 기록과 지표 파일 갱신
 with (base / "training_history.csv").open("w", encoding="utf-8-sig", newline="") as f:
     writer = csv.writer(f)
     writer.writerow(["epoch", "train_loss_eval"])

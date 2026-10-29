@@ -12,20 +12,24 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 print("학습 전 loss:", round(loss_fn(model(X), y).item(), 6))
 model.train()
 for epoch in range(80):
+    # 이전 epoch의 gradient 누적 방지를 위한 초기화
     optimizer.zero_grad()
     loss = loss_fn(model(X), y)
     # 현재 loss의 gradient를 계산하세요.
     # 파라미터 값은 아직 바뀌지 않으며 .grad에 기울기가 들어갑니다.
     # >>> B06
     # TODO B06: 위 요구사항을 읽고 이 블록을 완성하세요.
-    pass
+    # 현재 손실에 대한 파라미터별 gradient 계산
+    loss.backward()
     # <<< B06
     # 현재 gradient를 사용해 파라미터를 한 번 갱신하세요.
     # optimizer의 step 메서드를 호출합니다.
     # >>> B07
     # TODO B07: 위 요구사항을 읽고 이 블록을 완성하세요.
-    pass
+    # 계산한 gradient와 학습률에 따른 파라미터 갱신
+    optimizer.step()
     # <<< B07
+# 평가 모드 전환과 연산 그래프 기록 중단의 역할 구분
 model.eval()
 with torch.no_grad():
     logits = model(X)

@@ -6,8 +6,10 @@ vector = torch.tensor([1.0, 2.0, 3.0])
 # 자료를 CPU로 옮기는 코드는 제공되어 있습니다.
 # >>> B02
 # TODO B02: 위 요구사항을 읽고 이 블록을 완성하세요.
-matrix = torch.tensor([1.0, 2.0, 3.0, 4.0], dtype=torch.float32)
+# 행과 열의 구조 및 실수 자료형 명시
+matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]], dtype=torch.float32)
 # <<< B02
+# 장치 이동 결과를 다시 저장하여 실제 연산 장치 일치
 matrix = matrix.to("cpu")
 print("스칼라:", tuple(scalar.shape), scalar.dtype, scalar.device)
 print("벡터:", tuple(vector.shape), vector.dtype, vector.device)
