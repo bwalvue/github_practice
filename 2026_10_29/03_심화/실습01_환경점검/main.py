@@ -7,14 +7,17 @@ import torch
 # 드라이버가 있다는 사실만으로 CUDA를 선택하지 마세요.
 # >>> H01
 # TODO H01: 위 요구사항을 읽고 이 블록을 완성하세요.
-device = torch.device("cpu")
+# 실제 CUDA 사용 가능 여부에 따른 GPU 선택 및 CPU 대체 경로
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # <<< H01
 x = torch.tensor([[1., 2.], [3., 4.]]).to(device)
+# 입력 Tensor와 같은 장치에서 행렬곱 수행
 result = x @ x.T
 record = {"torch": str(torch.__version__), "cuda_build": torch.version.cuda,
           "cuda_available": torch.cuda.is_available(), "selected_device": str(device),
           "calculation": result.cpu().tolist()}
 if device.type == "cuda":
+    # GPU 선택 시에만 GPU 전용 정보 조회
     record["gpu_name"] = torch.cuda.get_device_name(device)
     record["vram_gib"] = torch.cuda.get_device_properties(device).total_memory / 1024**3
 out = Path(__file__).resolve().parent / "outputs"

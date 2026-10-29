@@ -12,7 +12,8 @@ class SimpleANN(nn.Module):
         # 출력은 (N,2) logits이며 softmax를 추가하지 않습니다.
         # >>> H04
         # TODO H04: 위 요구사항을 읽고 이 블록을 완성하세요.
-        return x
+        # CrossEntropyLoss 입력에 맞춘 softmax 이전 logits 반환
+        return self.net(x)
         # <<< H04
 
 torch.manual_seed(42)

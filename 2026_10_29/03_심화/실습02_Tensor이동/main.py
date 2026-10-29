@@ -10,8 +10,10 @@ values = torch.arange(12, dtype=torch.float32)
 # >>> H02
 # TODO H02: 위 요구사항을 읽고 이 블록을 완성하세요.
 matrix = values.reshape(3, 4)
-shifted = matrix
+# 네 열에 대한 행 방향 브로드캐스팅 적용
+shifted = matrix + torch.tensor([1., 2., 3., 4.])
 # <<< H02
+# 앞의 두 열만 입력으로 사용하고 입력·레이블·모델의 장치 통일
 X = shifted[:, :2].to(device)
 y = torch.tensor([0, 0, 1], dtype=torch.long).to(device)
 model = nn.Linear(2, 2).to(device)

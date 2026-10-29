@@ -14,8 +14,10 @@ for step in range(1, 11):
         # lr=0.1로 w를 갱신하세요. 아래 grad.zero_()는 다음 반복에 이전 기울기가 섞이지 않게 합니다.
         # >>> H03
         # TODO H03: 위 요구사항을 읽고 이 블록을 완성하세요.
-        pass
+        # leaf Tensor 유지 및 갱신 연산의 계산 그래프 기록 제외
+        w -= 0.1 * w.grad
         # <<< H03
+    # 다음 반복에 이전 gradient가 누적되지 않도록 초기화
     w.grad.zero_()
     records.append([step, before, gradient, w.item(), (w.detach()-4).square().item()])
 for r in records:

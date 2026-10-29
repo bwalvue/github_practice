@@ -15,11 +15,13 @@ for xb, yb in loader:
     # 마지막 배치는 2행입니다. batch_size=4를 곱하면 안 됩니다.
     # >>> H05
     # TODO H05: 위 요구사항을 읽고 이 블록을 완성하세요.
-    total_loss += loss.item()
+    # 마지막 배치 2건의 비중까지 반영한 표본별 손실 합산
+    total_loss += loss.item() * len(yb)
     # <<< H05
     count += len(yb)
     batch_means.append(loss.item())
 print("배치 크기: 4, 4, 2")
 print("잘못된 단순 평균:", round(sum(batch_means)/len(batch_means), 6))
+# 모든 배치의 표본 수 합계를 분모로 사용
 print("샘플 가중 평균:", round(total_loss/count, 6))
 print("전체를 한 번에 계산:", round(loss_fn(logits, y).item(), 6))

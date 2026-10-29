@@ -12,6 +12,7 @@ out = base / "outputs"
 out.mkdir(exist_ok=True)
 with (base / "data" / "points.csv").open(encoding="utf-8", newline="") as f:
     rows = list(csv.DictReader(f))
+# 제공된 분할과 행 순서 유지 및 test의 Tensor 변환 제외
 train_rows = [r for r in rows if r["split"] == "train"]
 valid_rows = [r for r in rows if r["split"] == "valid"]
 X_train = torch.tensor([[float(r["x1"]), float(r["x2"])] for r in train_rows])
@@ -32,19 +33,24 @@ history = []
 
 for epoch in range(81):
     if epoch > 0:
+        # epoch 0의 학습 전 기록과 이후의 학습 과정 구분
         model.train()
         for xb, yb in loader:
             xb, yb = xb.to(device), yb.to(device)
+            # 배치 간 gradient 누적 방지를 위한 초기화
             optimizer.zero_grad()
             loss = loss_fn(model(xb), yb)
             # 현재 batch loss의 역전파와 SGD 갱신을 작성하세요.
             # 검증은 아래 eval/no_grad 블록에서만 수행합니다.
             # >>> H06
             # TODO H06: 위 요구사항을 읽고 이 블록을 완성하세요.
-            pass
+            # 현재 배치의 gradient 계산 후 SGD 갱신
+            loss.backward()
+            optimizer.step()
             # <<< H06
     # epoch=0은 학습 전입니다. 로그는 갱신이 끝난 동일 모델로 측정합니다.
     if epoch % 10 == 0:
+        # 평가 모드 전환 및 평가 연산의 계산 그래프 생성 방지
         model.eval()
         with torch.no_grad():
             train_loss = loss_fn(model(Xt), yt).item()
