@@ -29,7 +29,8 @@ class TrainingChecks(unittest.TestCase):
         # 수치를 출력만 하지 말고 self.assertAlmostEqual을 사용합니다.
         # >>> H11
         # TODO H11: actual과 expected가 같은지 검사하세요.
-        self.fail("TODO H11 미완성")
+        # 3·3·1 배치의 표본 가중 평균과 전체 손실의 수치 일치 검증
+        self.assertAlmostEqual(actual, expected, places=5)
         # <<< H11
 
     def test_evaluation_does_not_learn(self):
@@ -42,7 +43,13 @@ class TrainingChecks(unittest.TestCase):
         # 모델의 eval 모드 전환은 정상입니다. 이 단계는 모드 복구까지 요구하지 않습니다.
         # >>> H12
         # TODO H12: 가중치·gradient·예측의 그래프 여부를 검사하세요.
-        self.fail("TODO H12 미완성")
+        # 평가 전후 파라미터와 이미 계산된 gradient의 보존 검증
+        for name, value in self.model.state_dict().items():
+            self.assertTrue(torch.equal(value, before[name]), msg=name)
+        for parameter, gradient in zip(self.model.parameters(), grads):
+            self.assertTrue(torch.equal(parameter.grad, gradient))
+        # 평가 예측에 계산 그래프가 연결되지 않음을 확인
+        self.assertFalse(prediction.requires_grad)
         # <<< H12
 
 if __name__ == "__main__":
