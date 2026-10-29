@@ -9,7 +9,8 @@ for hidden in [4, 8, 16]:
     # 은닉층 뒤에 ReLU를 넣고 마지막에 softmax는 넣지 않습니다.
     # >>> A04
     # TODO A04: 위 요구사항을 읽고 이 블록을 완성하세요.
-    model = nn.Sequential(nn.Linear(2, hidden), nn.Linear(hidden, 2))
+    # 은닉층의 비선형 변환과 CrossEntropyLoss용 원시 logits 출력
+    model = nn.Sequential(nn.Linear(2, hidden), nn.ReLU(), nn.Linear(hidden, 2))
     # <<< A04
     logits = model(X)
     count = sum(p.numel() for p in model.parameters())

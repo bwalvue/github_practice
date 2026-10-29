@@ -12,7 +12,8 @@ dataset = TensorDataset(X, y)
 # 정상 데이터 10건이 4·4·2로 나뉘어야 합니다. num_workers=0을 유지합니다.
 # >>> A05
 # TODO A05: 위 요구사항을 읽고 이 블록을 완성하세요.
-loader = DataLoader(dataset, batch_size=5, shuffle=False, num_workers=0)
+# 마지막 2건까지 포함한 순서 고정 배치 구성
+loader = DataLoader(dataset, batch_size=4, shuffle=False, drop_last=False, num_workers=0)
 # <<< A05
 sizes = []
 for index, (xb, yb) in enumerate(loader, 1):
@@ -35,7 +36,8 @@ loss_means = [0.1, 0.2, 0.9]
 sample_counts = [4, 4, 2]
 # >>> A09
 # TODO A09: 배치 크기까지 반영한 평균을 계산하세요.
-weighted_loss = 0.0
+# 작은 배치의 과대 반영 방지를 위한 실제 표본 수 가중 평균
+weighted_loss = sum(loss * count for loss, count in zip(loss_means, sample_counts)) / sum(sample_counts)
 # <<< A09
 print("샘플 가중 loss:", round(weighted_loss, 6))
 print("배치 단순 평균:", round(sum(loss_means) / len(loss_means), 6))

@@ -12,6 +12,7 @@ out = base / "outputs"
 out.mkdir(exist_ok=True)
 with (base / "data" / "points.csv").open(encoding="utf-8", newline="") as f:
     rows = list(csv.DictReader(f))
+# 고정 split에 따른 학습·검증 분리와 test Tensor 생성 제외
 train_rows = [r for r in rows if r["split"] == "train"]
 valid_rows = [r for r in rows if r["split"] == "valid"]
 X_train = torch.tensor([[float(r["x1"]), float(r["x2"])] for r in train_rows])
@@ -19,6 +20,7 @@ y_train = torch.tensor([int(r["label"]) for r in train_rows], dtype=torch.long)
 X_valid = torch.tensor([[float(r["x1"]), float(r["x2"])] for r in valid_rows])
 y_valid = torch.tensor([int(r["label"]) for r in valid_rows], dtype=torch.long)
 # test 40건은 모델에 전달하지 않습니다. 순서를 바꾸거나 다시 분할하지 않습니다.
+# 모델 초기화와 DataLoader shuffle의 난수 흐름 분리
 torch.manual_seed(42)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 loader = DataLoader(TensorDataset(X_train, y_train), batch_size=32, shuffle=True,
@@ -34,19 +36,24 @@ for epoch in range(81):
     if epoch > 0:
         model.train()
         for xb, yb in loader:
+            # 입력·정답·모델의 연산 장치 일치
             xb, yb = xb.to(device), yb.to(device)
+            # 이전 배치의 gradient 누적 방지를 위한 초기화
             optimizer.zero_grad()
             loss = loss_fn(model(xb), yb)
             # 각 batch에서 backward와 step을 연결하세요.
             # train 자료만 loader에 들어갑니다. valid로 backward하거나 학습하지 마세요.
             # >>> A07
             # TODO A07: 위 요구사항을 읽고 이 블록을 완성하세요.
-            pass
+            loss.backward()
+            optimizer.step()
             # <<< A07
     # epoch=0은 학습 전입니다. 로그는 갱신이 끝난 동일 모델로 측정합니다.
     if epoch % 10 == 0:
+        # 평가 모드 전환과 gradient 추적 중단을 통한 지표 계산
         model.eval()
         with torch.no_grad():
+            # 마지막 배치 대신 갱신 완료 모델의 train 전체 손실 기록
             train_loss = loss_fn(model(Xt), yt).item()
             logits = model(Xv)
             valid_loss = loss_fn(logits, yv).item()
@@ -66,7 +73,8 @@ with torch.no_grad():
     # CSV로 저장하기 전에 CPU로 옮깁니다. y_valid의 순서는 그대로 유지하세요.
     # >>> A08
     # TODO A08: 위 요구사항을 읽고 이 블록을 완성하세요.
-    predictions = torch.zeros(len(y_valid), dtype=torch.long)
+    # 클래스 축의 최대 점수 선택과 CSV 저장용 CPU 이동
+    predictions = logits.argmax(dim=1).cpu()
     # <<< A08
 metrics = {"device": str(device), "torch": str(torch.__version__), "epochs": 80,
            "train_rows": len(train_rows), "valid_rows": len(valid_rows), "test_used": False,
@@ -89,7 +97,10 @@ print("생성: outputs의 환경·학습·검증 결과")
 # 완료: 오류 행 수 = 40 - 맞힌 개수, 저장 파일은 헤더를 포함합니다.
 # >>> A10
 # TODO A10: 실제 오답 행만 ID와 함께 수집하세요.
-errors = []
+# valid 순서를 유지한 실제 오답 추출과 오답 0건의 빈 목록 유지
+errors = [(r["id"], int(actual), int(predicted))
+          for r, actual, predicted in zip(valid_rows, y_valid, predictions)
+          if int(actual) != int(predicted)]
 # <<< A10
 with (out / "validation_errors.csv").open("w", encoding="utf-8-sig", newline="") as f:
     writer = csv.writer(f)
