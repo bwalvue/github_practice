@@ -13,13 +13,17 @@ model = SimpleANN()
 # 먼저 같은 모델 구조를 만들었습니다. 인터넷에서 받은 출처 불명 파일은 읽지 마세요.
 # >>> H10
 # TODO H10: 위 요구사항을 읽고 이 블록을 완성하세요.
-pass
+# GPU 학습 결과도 CPU 메모리로 읽고 동일 구조에 파라미터만 복원
+state = torch.load(base / "outputs" / "model_state.pt", map_location="cpu", weights_only=True)
+model.load_state_dict(state)
 # <<< H10
+# 재학습 없이 평가 모드와 계산 그래프가 없는 추론만 수행
 model.eval()
 with torch.no_grad():
     predictions = model(X).argmax(dim=1).tolist()
 with (base / "outputs" / "validation_predictions.csv").open(encoding="utf-8-sig",newline="") as f:
     saved = list(csv.DictReader(f))
+# 예측 일치와 별개로 ID 순서도 확인하여 행 연결 오류 방지
 print("ID 순서 동일:", [r["id"] for r in valid_rows] == [r["id"] for r in saved])
 print("예측 동일:", predictions == [int(r["predicted"]) for r in saved])
 print("서로 다른 CPU/GPU의 마지막 비트까지 동일함을 보장하는 검사는 아닙니다.")

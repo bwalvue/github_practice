@@ -7,4 +7,5 @@ class SimpleANN(nn.Module):
         self.net = nn.Sequential(nn.Linear(2,8), nn.ReLU(), nn.Linear(8,2))
 
     def forward(self, x):
+        # CrossEntropyLoss에 전달할 클래스별 logits 반환
         return self.net(x)
