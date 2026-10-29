@@ -19,16 +19,16 @@
 
 | 확인 항목 | 내 PC의 실제 결과 |
 |---|---|
-| Python 실행기 / 버전 | |
-| PyTorch 버전 | |
-| nvidia-smi 실행 여부 | |
-| NVIDIA GPU 이름 / VRAM | |
-| nvidia-smi의 드라이버 버전 | |
-| nvidia-smi의 CUDA 지원 표시 | |
-| torch.version.cuda(현재 PyTorch 빌드 정보) | |
-| torch.cuda.is_available() | |
-| 이번 실습의 실제 device | |
-| 실제 Tensor 연산을 수행한 장치 | |
+| Python 실행기 / 버전 | `C:/Sesac_Nvidia_Workspace/2026_10_29/.venv/Scripts/python.exe` / 3.13.16 |
+| PyTorch 버전 | 2.14.0+cu130 |
+| nvidia-smi 실행 여부 | 실행 성공 |
+| NVIDIA GPU 이름 / VRAM | NVIDIA GeForce RTX 5080 Laptop GPU / 16303 MiB (약 15.92 GiB) |
+| nvidia-smi의 드라이버 버전 | 610.74 |
+| nvidia-smi의 CUDA 지원 표시 | CUDA UMD Version 13.3 |
+| torch.version.cuda(현재 PyTorch 빌드 정보) | 13.0 |
+| torch.cuda.is_available() | True |
+| 이번 실습의 실제 device | cpu |
+| 실제 Tensor 연산을 수행한 장치 | cpu |
 
 `is_available=False`만으로 GPU가 물리적으로 없다고 단정하지 않습니다. CPU 빌드·드라이버·가상환경·장치 노출을 구분합니다. CPU 진행은 허용되며 GPU 미보유를 감점하지 않습니다. NVIDIA가 없는 PC는 해당 항목에 '미해당/미확인'을 기입합니다.
 
@@ -222,14 +222,20 @@ valid 예측: [0, 0, 1, 1]
 
 ### 내 설명 작성란
 
-1. `.backward()`와 `.step()`은 각각 무엇을 바꾸나요? →
-2. `zero_grad()`를 생략하면 어떤 일이 생기나요? →
-3. `train 정확도`와 `valid 정확도`는 어떤 자료를 사용하나요? →
-4. `eval()`만으로 gradient 기록이 꺼지나요? →
-5. 정상 데이터 4건에서 정확도1.0이면 실제 서비스도 잘 동작한다고 할 수 있나요? →
+1. `.backward()`와 `.step()`은 각각 무엇을 바꾸나요? → backward는 파라미터의 `.grad`에 미분값 누적, step은 해당 gradient를 사용한 파라미터 값 갱신.
+2. `zero_grad()`를 생략하면 어떤 일이 생기나요? → 이전 epoch의 gradient가 현재 gradient에 누적되어 의도한 현재 손실 기준 갱신과 달라지는 문제 발생.
+3. `train 정확도`와 `valid 정확도`는 어떤 자료를 사용하나요? → train 정확도는 학습에 사용한 자료, valid 정확도는 파라미터 갱신에 사용하지 않은 별도 검증 자료 사용.
+4. `eval()`만으로 gradient 기록이 꺼지나요? → eval은 평가 모드 전환이며 gradient 기록 중단은 별도의 no_grad 적용 필요.
+5. 정상 데이터 4건에서 정확도1.0이면 실제 서비스도 잘 동작한다고 할 수 있나요? → 작은 합성 자료 4건만으로 실제 분포의 오류·불량 입력·운영 환경을 대표하기 어려워 서비스 성능 판단 불가.
 
 **제출:** 완성한 코드, points.csv, 이 README의 설명, 생성된 세 결과 파일. Git 명령이나 별도 보고서 작성은 기본필수의 추가 구현 과제가 아닙니다.
 
 ### 막힐 때
 
 `None`/`pass`/임시 숫자가 남아 있으면 TODO를 먼저 확인합니다. GPU가 없어도 CPU로 계속합니다. 04번 출력이(4,1)이면 마지막 Linear가 아직 미완성입니다. loss가 전혀 바뀌지 않으면 B06/B07 또는 B08의 backward·step을 확인합니다. 특성을 늘리거나 학습률을 바꾸기 전에 제공된 설정에서 실행 흐름부터 완성하세요.
+
+## 실제 실행 확인
+
+Python 3.13.16 / PyTorch 2.14.0+cu130 환경에서 CPU 실행. 07번 train loss 0.514554 → 0.110675, valid 예측 [0, 0, 1, 1], 정확도 1.0. 학습 기록 81행, test 미사용, 재실행 시 세 결과 파일의 해시 일치 확인.
+
+검증 실행은 OMP_NUM_THREADS=1, MKL_NUM_THREADS=1 설정. NumPy 미설치 경고가 발생했으나 NumPy 연동을 사용하지 않아 전체 실행과 테스트 통과. 기존 환경의 패키지 변경 없음.

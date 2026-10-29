@@ -30,6 +30,6 @@ TODO의 계산을 코드로 확인하고 예상 결과와 비교합니다. 자�
 
 ## 내 기록
 
-- 확인한 입력 / 출력: 
-- 결과의 의미: 
-- 잘못 이해했던 내용 또는 질문:
+- 확인한 입력 / 출력: train120·valid40, cuda:0에서 80epoch; train loss 0.565832→0.089844, valid loss 0.510637→0.057217, valid accuracy 0.7→1.0
+- 결과의 의미: 학습 종료 후 같은 고정 모델로 측정한 train_loss_eval과 valid_loss 비교 및 test40건 미사용
+- 잘못 이해했던 내용 또는 질문: 질문: 학습 중 배치별 모델이 달라지는 online loss와 epoch 종료 모델의 전체 train loss가 다른 이유는 무엇인가?

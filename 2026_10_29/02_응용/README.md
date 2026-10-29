@@ -18,16 +18,16 @@
 
 | 확인 항목 | 내 PC의 실제 결과 |
 |---|---|
-| Python 실행기 / 버전 | |
-| PyTorch 버전 | |
-| nvidia-smi 실행 여부 | |
-| NVIDIA GPU 이름 / VRAM | |
-| nvidia-smi의 드라이버 버전 | |
-| nvidia-smi의 CUDA 지원 표시 | |
-| torch.version.cuda(현재 PyTorch 빌드 정보) | |
-| torch.cuda.is_available() | |
-| 이번 실습의 실제 device | |
-| 실제 Tensor 연산을 수행한 장치 | |
+| Python 실행기 / 버전 | `C:/Sesac_Nvidia_Workspace/2026_10_29/.venv/Scripts/python.exe` / 3.13.16 |
+| PyTorch 버전 | 2.14.0+cu130 |
+| nvidia-smi 실행 여부 | 실행 성공 |
+| NVIDIA GPU 이름 / VRAM | NVIDIA GeForce RTX 5080 Laptop GPU / 16303 MiB (약 15.92 GiB) |
+| nvidia-smi의 드라이버 버전 | 610.74 |
+| nvidia-smi의 CUDA 지원 표시 | CUDA UMD Version 13.3 |
+| torch.version.cuda(현재 PyTorch 빌드 정보) | 13.0 |
+| torch.cuda.is_available() | True |
+| 이번 실습의 실제 device | cuda:0 |
+| 실제 Tensor 연산을 수행한 장치 | cuda:0 |
 
 `is_available=False`만으로 GPU가 물리적으로 없다고 단정하지 않습니다. CPU 빌드·드라이버·가상환경·장치 노출을 구분합니다. CPU 진행은 허용되며 GPU 미보유를 감점하지 않습니다. NVIDIA가 없는 PC는 해당 항목에 '미해당/미확인'을 기입합니다.
 
@@ -204,11 +204,11 @@ CSV 기록의 `train_loss_eval`은 해당 epoch 갱신을 모두 끝낸 뒤 trai
 
 ### 내 설명
 
-- full-batch와 mini-batch의 차이: 
-- 마지막 batch가 작을 수 있는 이유: 
-- 입력·정답·모델을 같은 device에 두는 이유: 
-- 수동 갱신 뒤 loss와 갱신 전 loss를 구분하는 이유: 
-- 이번 valid 결과의 한계: 
+- full-batch와 mini-batch의 차이: 전체 train으로 epoch당 한 번 갱신하는 방식과 작은 묶음마다 여러 번 갱신하는 방식의 차이.
+- 마지막 batch가 작을 수 있는 이유: train120을 batch32로 나눈 나머지 24건의 보존. 손실 집계 시 실제 표본 수 반영 필요.
+- 입력·정답·모델을 같은 device에 두는 이유: 서로 다른 장치의 Tensor 간 연산 오류 방지.
+- 수동 갱신 뒤 loss와 갱신 전 loss를 구분하는 이유: 서로 다른 파라미터 값에서 계산한 손실의 구분과 실제 갱신 효과 확인.
+- 이번 valid 결과의 한계: 단순 합성 규칙과 valid40건에 한정된 확인. 높은 정확도만으로 실제 서비스 성능을 판단하기 어려움.
 
 제출은 코드·data·outputs와 이 설명입니다. 별도 모듈·테스트 파일을 추가할 필요는 없습니다.
 
@@ -225,3 +225,9 @@ CSV 기록의 `train_loss_eval`은 해당 epoch 갱신을 모두 끝낸 뒤 trai
 
 ### 새 함수·반환값 읽기
 `zip(a,b,c)`는 같은 위치의 원소를 묶습니다. 가장 짧은 길이에서 멈추므로 제공된 세 자료의 동일한 valid 순서를 유지해야 합니다. `int(tensor_scalar)`는 CSV에 쓸 정수로 바꿉니다. 이 단계의 TODO는 새 사용자 정의 함수를 요구하지 않습니다.
+
+## 실제 실행 확인
+
+Python 3.13.16 / PyTorch 2.14.0+cu130, cuda:0 실행. 07번 train loss 0.565832 → 0.089844, valid loss 0.057217, 정확도 1.0. 실제 오답 0건으로 오답 CSV 헤더만 생성. test 미사용, 재실행 결과 파일의 해시 일치 확인.
+
+검증 실행은 OMP_NUM_THREADS=1, MKL_NUM_THREADS=1 설정. NumPy 미설치 경고가 발생했으나 NumPy 연동을 사용하지 않아 전체 실행과 테스트 통과. 기존 환경의 패키지 변경 없음.
