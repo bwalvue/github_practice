@@ -1,0 +1,5 @@
+# 07 실습의 실제 검증 버전. 기존 정상 환경은 재설치 불필요.
+# PyTorch는 CPU/CUDA에 맞는 별도 환경 유지. 검증: torch 2.14.0+cu130.
+numpy==2.5.4
+pandas==3.1.0
+matplotlib==3.11.2
